@@ -3,44 +3,111 @@
 public class Port
 {
     private FillingStation[] Stations { get; set; }
-    private List<Tanker> Queue { get; }
-    private float FirstTankerFrequency { get; }
-    private float SecondTankerFrequency { get; }
-    private float ThirdTankerFrequency { get; }
+    private float[] TankerFrequencies { get; }
     private TimeGenerator SpecialTankerCycle { get; }
     private TimeGenerator ArriveTimeGenerator { get; }
-    
-    public Port(int stationsAmount, TimeGenerator arriveTimeGenerator, TimeGenerator specialTankerCycle, float firstTankerFrequency, float secondTankerFrequency, float thirdTankerFrequency)
+
+    private Storm Storm { get; }
+    private int SpecialTankersArrived { get; set; }
+    private int StormAmount { get; set; }
+    private Tanker[] SpecialTankers { get; }
+
+    public Port(int stationsAmount, TimeGenerator arriveTimeGenerator, TimeGenerator specialTankerCycle,
+        float[] tankerFrequencies, Storm storm)
     {
-        Queue = new List<Tanker>();
         Stations = new FillingStation[stationsAmount];
+        SpecialTankers = new Tanker[5];
+        InitializeStations();
         if (arriveTimeGenerator == null)
             throw new ArgumentNullException(nameof(arriveTimeGenerator));
         if (specialTankerCycle == null)
             throw new ArgumentNullException(nameof(specialTankerCycle));
-        if (firstTankerFrequency <= 0 || firstTankerFrequency > 1)
-            throw new ArgumentException(nameof(firstTankerFrequency));
-        if (secondTankerFrequency <= 0 || secondTankerFrequency > 1)
-            throw new ArgumentException(nameof(firstTankerFrequency));
-        if (thirdTankerFrequency <= 0 || thirdTankerFrequency > 1)
-            throw new ArgumentException(nameof(firstTankerFrequency));
+        if (storm == null)
+            throw new ArgumentNullException(nameof(storm));
+        CheckTankerFrequencies(tankerFrequencies);
 
+        Storm = storm;
         ArriveTimeGenerator = arriveTimeGenerator;
         SpecialTankerCycle = specialTankerCycle;
-        FirstTankerFrequency = firstTankerFrequency;
-        SecondTankerFrequency = secondTankerFrequency;
-        ThirdTankerFrequency = thirdTankerFrequency;
+        TankerFrequencies = tankerFrequencies;
     }
 
-    public void StartModelling(float modellingDuration)
+    private void InitializeSpecialTankers(float currentTime)
+    {
+        for (int i = 0; i < SpecialTankers.Length; i++)
+            SpecialTankers[i] = new Tanker(new TimeGenerator(21, 3), 0, currentTime + SpecialTankerCycle.Get());
+    }
+
+    private void InitializeStations()
+    {
+        for (int i = 0; i < Stations.Length; i++)
+            Stations[i] = new FillingStation();
+    }
+
+    private void CheckTankerFrequencies(float[] frequencies)
+    {
+        foreach (float frequency in frequencies)
+            if (frequency < 0 || frequency > 1)
+                throw new ArgumentException(nameof(frequency));
+    }
+
+    public void StartModelling(float modellingDuration, bool specialTankers)
     {
         float currentTime = 0;
+
+        if (specialTankers)
+            InitializeSpecialTankers(currentTime);
+        
         while (currentTime < modellingDuration)
         {
-            Tanker tanker = GenerateTanker(currentTime);
-            GetStation(tanker);
-            currentTime = tanker.ArriveTime;
-        } 
+            if (currentTime >= Storm.ArrivalTime && currentTime <= Storm.ArrivalTime + Storm.CurrentDuration)
+            {
+                currentTime = Storm.ArrivalTime + Storm.CurrentDuration;
+            }
+            else
+            {
+                Tanker tanker = GenerateCommonTanker(currentTime);
+                GetStation(tanker);
+                if (specialTankers)
+                    CheckSpecialTankersArrival(currentTime);
+                currentTime = tanker.ArriveTime;
+            }
+
+            if (Storm.ArrivalTime <= currentTime)
+            {
+                Storm.Get();
+                StormAmount++;
+            }
+        }
+
+        CalculateSpentTime(modellingDuration);
+    }
+
+    private void CalculateSpentTime(float modellingDuration)
+    {
+        foreach (FillingStation station in Stations)
+            station.SpentTime = modellingDuration - station.IdleTime;
+    }
+
+    private void CheckSpecialTankersArrival(float currentTime)
+    {
+        foreach (Tanker tanker in SpecialTankers)
+        {
+            if (currentTime > tanker.ArriveTime)
+            {
+                GetStation(tanker);
+                SpecialTankersArrived++;
+                tanker.ArriveTime = currentTime + SpecialTankerCycle.Get();
+            }
+        }
+    }
+
+    private int GetTankersAmount()
+    {
+        int count = 0;
+        foreach (FillingStation station in Stations)
+            count += station.ServedAmount;
+        return count;
     }
 
     private void GetStation(Tanker tanker)
@@ -49,8 +116,9 @@ public class Port
         {
             if (tanker.ArriveTime >= station.ReleaseTime)
             {
-                station.IdleTime += tanker.ArriveTime - station.ReleaseTime; 
-                station.ReleaseTime += tanker.LoadTime.Get();
+                station.IdleTime += tanker.ArriveTime - station.ReleaseTime;
+                station.ReleaseTime = tanker.ArriveTime + tanker.LoadTime.Get();
+                station.ServedAmount++;
                 return;
             }
         }
@@ -59,17 +127,18 @@ public class Port
         int value = r.Next(0, Stations.Length);
         tanker.QueueTime += Stations[value].ReleaseTime - tanker.ArriveTime;
         Stations[value].ReleaseTime += tanker.LoadTime.Get();
+        Stations[value].ServedAmount++;
     }
 
-    private Tanker GenerateTanker(float currentTime)
+    private Tanker GenerateCommonTanker(float currentTime)
     {
         Random r = new Random();
-        float arriveTime = currentTime + ArriveTimeGenerator.Get(), tankerType = (float) r.NextDouble();
+        float arriveTime = currentTime + ArriveTimeGenerator.Get(), tankerType = (float)r.NextDouble();
         TimeGenerator timeGenerator;
-        
-        if (tankerType < FirstTankerFrequency)
+
+        if (tankerType < TankerFrequencies[0])
             timeGenerator = new TimeGenerator(18, 2);
-        else if (tankerType < FirstTankerFrequency + SecondTankerFrequency)
+        else if (tankerType < TankerFrequencies[0] + TankerFrequencies[1])
             timeGenerator = new TimeGenerator(24, 3);
         else
             timeGenerator = new TimeGenerator(35, 4);

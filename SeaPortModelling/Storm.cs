@@ -3,7 +3,9 @@
 public class Storm
 {
     public TimeGenerator Duration { get; }
-    public float StartTime { get; set;  }
+    
+    public float CurrentDuration { get; set;  }
+    public float ArrivalTime { get; set;  }
     private float lambda { get; }
     
     public Storm(TimeGenerator duration, float _lambda)
@@ -12,11 +14,19 @@ public class Storm
             throw new ArgumentNullException(nameof(duration));
         Duration = duration;
         lambda = _lambda;
+        Get();
     }
 
-    public void Update()
+    public void Get()
     {
         Random r = new Random();
-        StartTime += 1 / lambda * (float) Math.Log(1 - r.NextDouble());
+        ArrivalTime += CurrentDuration; 
+        ArrivalTime += 1 / lambda * (float) -Math.Log(1 - r.NextDouble());
+        GenerateDuration();
+    }
+
+    public void GenerateDuration()
+    {
+        CurrentDuration = Duration.Get();
     }
 }
