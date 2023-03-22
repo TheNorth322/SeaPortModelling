@@ -6,12 +6,14 @@ public class Port
     private float[] TankerFrequencies { get; }
     private TimeGenerator SpecialTankerCycle { get; }
     private TimeGenerator ArriveTimeGenerator { get; }
-
     private Storm Storm { get; }
     private int SpecialTankersArrived { get; set; }
     private int StormAmount { get; set; }
     private Tanker[] SpecialTankers { get; }
-
+    private int Counter { get; set; }
+    private float QueueTime { get; set; }
+    private int TankersArrived { get; set;  }
+    
     public Port(int stationsAmount, TimeGenerator arriveTimeGenerator, TimeGenerator specialTankerCycle,
         float[] tankerFrequencies, Storm storm)
     {
@@ -63,6 +65,7 @@ public class Port
             if (currentTime >= Storm.ArrivalTime && currentTime <= Storm.ArrivalTime + Storm.CurrentDuration)
             {
                 currentTime = Storm.ArrivalTime + Storm.CurrentDuration;
+                Counter++;
             }
             else
             {
@@ -71,6 +74,7 @@ public class Port
                 if (specialTankers)
                     CheckSpecialTankersArrival(currentTime);
                 currentTime = tanker.ArriveTime;
+                QueueTime += tanker.QueueTime;
             }
 
             if (Storm.ArrivalTime <= currentTime)
@@ -80,9 +84,16 @@ public class Port
             }
         }
 
+        CalculateTankersArrived();
+        QueueTime /= TankersArrived;
         CalculateSpentTime(modellingDuration);
     }
 
+    private void CalculateTankersArrived()
+    {
+        foreach (FillingStation station in Stations)
+            TankersArrived += station.ServedAmount;
+    }
     private void CalculateSpentTime(float modellingDuration)
     {
         foreach (FillingStation station in Stations)
