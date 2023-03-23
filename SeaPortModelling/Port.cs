@@ -2,17 +2,17 @@
 
 public class Port
 {
-    private FillingStation[] Stations { get; set; }
+    public FillingStation[] Stations { get; set; }
     private float[] TankerFrequencies { get; }
     private TimeGenerator SpecialTankerCycle { get; }
     private TimeGenerator ArriveTimeGenerator { get; }
     private Storm Storm { get; }
-    private int SpecialTankersArrived { get; set; }
-    private int StormAmount { get; set; }
+    public int SpecialTankersArrived { get; set; }
+    public int StormAmount { get; set; }
     private Tanker[] SpecialTankers { get; }
     private int Counter { get; set; }
-    private float QueueTime { get; set; }
-    private int TankersArrived { get; set;  }
+    public float QueueTime { get; set; }
+    public int TankersArrived { get; set;  }
     
     public Port(int stationsAmount, TimeGenerator arriveTimeGenerator, TimeGenerator specialTankerCycle,
         float[] tankerFrequencies, Storm storm)
@@ -98,6 +98,16 @@ public class Port
     {
         foreach (FillingStation station in Stations)
             station.SpentTime = modellingDuration - station.IdleTime;
+    }
+
+    public float GetAverageSpentTime()
+    {
+        float sum = 0;
+
+        foreach (FillingStation station in Stations)
+            sum += station.SpentTime;
+
+        return sum / TankersArrived;
     }
 
     private void CheckSpecialTankersArrival(float currentTime)
