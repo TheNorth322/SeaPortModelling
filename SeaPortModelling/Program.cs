@@ -10,16 +10,16 @@ public static class Program {
     {
         int counter = 0;
 
-        Console.WriteLine("Моделирование работы порта");
-        Console.WriteLine("Значения в скобках относятся к ситуациям обычных условий моделирования и с танкерами 4-го типа соответственно");
-        Console.WriteLine("\nТеоретически ожидается:\n1) танкеров 1-3 типов — 664\n2) танкеров 4 типа - 180\n3) штормов - 166\n4) ср. время обслуживания - 24.7\n");
-        Console.WriteLine("В таблице представлено среднее время ожидания танкеров\nСпециальные танкеры:\n   нет     есть");
+        Console.WriteLine("МОДЕЛИРОВАНИЕ РАБОТЫ ПОРТА");
+        Console.WriteLine("\nТеоретически ожидается:\n1) танкеров 1-3 типов — 665\n2) танкеров 4 типа - 180\n3) штормов - 166\n4) ср. время обслуживания танкеров 1-3 типов - 24,7\n5) ср. время обслуживания танкеров 1-4 типов - 23,9\n");
+        Console.WriteLine("СХЕМА: *критерий*: *результат моделирования в обычных условиях* и *результат моделирования при наличии танкеров 4-го типа*\n");
+
         for (int i = 0; i < N; i++)
         {
             counter += IsAddingSpecialTankersOk(8640, 3f, new TimeGenerator(13, 10));
         }
 
-        Console.WriteLine($"\nОтвет: большинство результатов поделирования {((float)N / (float)counter < 2 ? "ЗА заключение" : "ПРОТИВ заключения")} контракта ({counter} из {N})");
+        Console.WriteLine($"\nОтвет: большинство результатов моделирования {((float)N / (float)counter < 2 ? "ЗА заключение" : "ПРОТИВ заключения")} контракта ({counter} из {N})");
     }
 
     private static int IsAddingSpecialTankersOk(int hours, float queueTimeDifference, TimeGenerator arriveTime)
@@ -32,10 +32,10 @@ public static class Program {
         port1.StartModelling(hours, false);
         port2.StartModelling(hours, true);
 
-        Console.WriteLine("| {0, 5:N3} | {1, 5:N3} | (танкеров прибыло: {2} и {3}, из них 4 типа: {4} и {5}, штормов {6} и {7}, ср. время обслуживания {8} и {9})",
+        Console.WriteLine("| ср. время обслуживания: {0, 5:N3} и {1, 5:N3} | танкеров прибыло: {2} и {3}, из них 4 типа: {4} и {5} | штормов {6} и {7} | ср. время обслуживания {8, 4:N1} и {9, 4:N1} |",
             Math.Round(port1.QueueTime, 3), Math.Round(port2.QueueTime, 3), port1.TankersArrived, port2.TankersArrived,
             port1.SpecialTankersArrived, port2.SpecialTankersArrived, port1.StormAmount, port2.StormAmount,
-            port1.GetAverageSpentTime(), port2.GetAverageSpentTime());
+            Math.Round(port1.GetAverageSpentTime(), 1), Math.Round(port2.GetAverageSpentTime(), 1));
 
         return Math.Abs(port1.QueueTime - port2.QueueTime) > queueTimeDifference ? 0 : 1;
     }
