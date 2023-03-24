@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\SeaPortModelling"
   ],
-  "SelectedNode": "\\SeaPortModelling.sln",
+  "SelectedNode": "\\SeaPortModelling\\Program.cs",
   "PreviewInSolutionExplorer": false
 }

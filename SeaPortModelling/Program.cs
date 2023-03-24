@@ -19,7 +19,7 @@ public static class Program {
             counter += IsAddingSpecialTankersOk(8640, 3f, new TimeGenerator(13, 10));
         }
 
-        Console.WriteLine($"\nОтвет: большинство результатов моделирования {((float)N / (float)counter < 2 ? "ЗА заключение" : "ПРОТИВ заключения")} контракта ({counter} из {N})");
+        Console.WriteLine($"\nОтвет: большинство результатов моделирования {((float)N / (float)counter <= 2 ? "ЗА заключение" : "ПРОТИВ заключения")} контракта ({counter} из {N})");
     }
 
     private static int IsAddingSpecialTankersOk(int hours, float queueTimeDifference, TimeGenerator arriveTime)
@@ -32,7 +32,7 @@ public static class Program {
         port1.StartModelling(hours, false);
         port2.StartModelling(hours, true);
 
-        Console.WriteLine("| ср. время обслуживания: {0, 5:N3} и {1, 5:N3} | танкеров прибыло: {2} и {3}, из них 4 типа: {4} и {5} | штормов {6} и {7} | ср. время обслуживания {8, 4:N1} и {9, 4:N1} |",
+        Console.WriteLine("| ср. время ожидания: {0, 5:N3} и {1, 5:N3} | танкеров прибыло: {2} и {3}, из них 4 типа: {4} и {5} | штормов {6} и {7} | ср. время обслуживания {8, 4:N1} и {9, 4:N1} |",
             Math.Round(port1.QueueTime, 3), Math.Round(port2.QueueTime, 3), port1.TankersArrived, port2.TankersArrived,
             port1.SpecialTankersArrived, port2.SpecialTankersArrived, port1.StormAmount, port2.StormAmount,
             Math.Round(port1.GetAverageSpentTime(), 1), Math.Round(port2.GetAverageSpentTime(), 1));
