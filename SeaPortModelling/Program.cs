@@ -3,40 +3,49 @@
 public static class Program {
     public static void Main()
     {
-        Run(12);
+        Console.WriteLine("МОДЕЛИРОВАНИЕ РАБОТЫ ПОРТА БЕЗ СПЕЦИАЛЬНЫХ ТАНКЕРОВ");
+        Run(11, false);
+        Console.WriteLine("\n\n\nМОДЕЛИРОВАНИЕ РАБОТЫ ПОРТА СО СПЕЦИАЛЬНЫМИ ТАНКЕРАМИ");
+        Run(73, true);
     }
 
-    private static void Run(int N)
+    private static void Run(int N, bool specialTankers)
     {
-        int counter = 0;
+        float sum = 0;
+        float[] QueueTimesArray = new float[N];
 
-        Console.WriteLine("МОДЕЛИРОВАНИЕ РАБОТЫ ПОРТА");
         Console.WriteLine("\nТеоретически ожидается:\n1) танкеров 1-3 типов — 665\n2) танкеров 4 типа - 180\n3) штормов - 166\n4) ср. время обслуживания танкеров 1-3 типов - 24,7\n5) ср. время обслуживания танкеров 1-4 типов - 23,9\n");
-        Console.WriteLine("СХЕМА: *критерий*: *результат моделирования в обычных условиях* и *результат моделирования при наличии танкеров 4-го типа*\n");
 
         for (int i = 0; i < N; i++)
         {
-            counter += IsAddingSpecialTankersOk(8640, 3f, new TimeGenerator(13, 10));
+            QueueTimesArray[i] += GetQueueTime(8640, new TimeGenerator(13, 10), specialTankers);
+            sum += QueueTimesArray[i];
         }
-
-        Console.WriteLine($"\nОтвет: большинство результатов моделирования {((float)N / (float)counter <= 2 ? "ЗА заключение" : "ПРОТИВ заключения")} контракта ({counter} из {N})");
+        Console.WriteLine($"\nN* = {Math.Ceiling(CalculateDispersion(QueueTimesArray, sum / (float)N, N) / (0.2f * 0.2f) * (1.960f * 1.960f))}");
+        Console.WriteLine($"Среднее время ожидания: {sum / (float)N}");
     }
 
-    private static int IsAddingSpecialTankersOk(int hours, float queueTimeDifference, TimeGenerator arriveTime)
+    private static float CalculateDispersion(float[] xi, float expectation, int N)
     {
-        Port port1 = new Port(3, arriveTime, new TimeGenerator(240, 24),
-            new float[] { 0.25f, 0.55f, 0.2f }, new Storm(new TimeGenerator(4, 2), 1.0f / 48.0f));
-        Port port2 = new Port(3, arriveTime, new TimeGenerator(240, 24),
+        float sum = 0;
+
+        for(int i = 0; i < N; ++i)
+            sum += (float)Math.Pow(xi[i] - expectation, 2);
+
+        return sum / (float)N;
+    }
+
+    private static float GetQueueTime(int hours, TimeGenerator arriveTime, bool specialTankers)
+    {
+
+        Port port = new Port(3, arriveTime, new TimeGenerator(240, 24),
             new float[] { 0.25f, 0.55f, 0.2f }, new Storm(new TimeGenerator(4, 2), 1.0f / 48.0f));
         
-        port1.StartModelling(hours, false);
-        port2.StartModelling(hours, true);
+        port.StartModelling(hours, specialTankers);
 
-        Console.WriteLine("| ср. время ожидания: {0, 5:N3} и {1, 5:N3} | танкеров прибыло: {2} и {3}, из них 4 типа: {4} и {5} | штормов {6} и {7} | ср. время обслуживания {8, 4:N1} и {9, 4:N1} |",
-            Math.Round(port1.QueueTime, 3), Math.Round(port2.QueueTime, 3), port1.TankersArrived, port2.TankersArrived,
-            port1.SpecialTankersArrived, port2.SpecialTankersArrived, port1.StormAmount, port2.StormAmount,
-            Math.Round(port1.GetAverageSpentTime(), 1), Math.Round(port2.GetAverageSpentTime(), 1));
+        Console.WriteLine("| ср. время ожидания: {0, 5:N3} | танкеров прибыло: {1}, из них 4 типа: {2} | штормов {3} | ср. время обслуживания {4, 4:N1} |",
+            Math.Round(port.QueueTime, 3), port.TankersArrived,port.SpecialTankersArrived, port.StormAmount, Math.Round(port.GetAverageSpentTime(), 1));
 
-        return Math.Abs(port1.QueueTime - port2.QueueTime) > queueTimeDifference ? 0 : 1;
+        return port.QueueTime;
     }
 }
