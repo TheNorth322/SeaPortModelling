@@ -3,9 +3,12 @@
 public static class Program {
     public static void Main()
     {
+        Console.WriteLine("МОДЕЛИРОВАНИЕ РАБОТЫ ПОРТА\n\nТеоретически ожидается:\n1) танкеров 1-3 типов — 665\n2) танкеров 4 типа - 180\n3) штормов - 166\n4) ср. время обслуживания танкеров 1-3 типов - 24,7\n5) ср. время обслуживания танкеров 1-4 типов - 23,9\n");
+
         Console.WriteLine("МОДЕЛИРОВАНИЕ РАБОТЫ ПОРТА БЕЗ СПЕЦИАЛЬНЫХ ТАНКЕРОВ");
         Run(11, false);
-        Console.WriteLine("\n\n\nМОДЕЛИРОВАНИЕ РАБОТЫ ПОРТА СО СПЕЦИАЛЬНЫМИ ТАНКЕРАМИ");
+
+        Console.WriteLine("\nМОДЕЛИРОВАНИЕ РАБОТЫ ПОРТА СО СПЕЦИАЛЬНЫМИ ТАНКЕРАМИ");
         Run(73, true);
     }
 
@@ -14,15 +17,14 @@ public static class Program {
         float sum = 0;
         float[] QueueTimesArray = new float[N];
 
-        Console.WriteLine("\nТеоретически ожидается:\n1) танкеров 1-3 типов — 665\n2) танкеров 4 типа - 180\n3) штормов - 166\n4) ср. время обслуживания танкеров 1-3 типов - 24,7\n5) ср. время обслуживания танкеров 1-4 типов - 23,9\n");
-
         for (int i = 0; i < N; i++)
         {
             QueueTimesArray[i] += GetQueueTime(8640, new TimeGenerator(13, 10), specialTankers);
             sum += QueueTimesArray[i];
         }
+        
         Console.WriteLine($"\nN* = {Math.Ceiling(CalculateDispersion(QueueTimesArray, sum / (float)N, N) / (0.2f * 0.2f) * (1.960f * 1.960f))}");
-        Console.WriteLine($"Среднее время ожидания: {sum / (float)N}");
+        Console.WriteLine($"Среднее время ожидания: {Math.Round(sum / (float)N, 3)}");
     }
 
     private static float CalculateDispersion(float[] xi, float expectation, int N)
