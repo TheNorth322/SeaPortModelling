@@ -9,7 +9,7 @@ public static class Program {
         Run(11, false);
 
         Console.WriteLine("\nМОДЕЛИРОВАНИЕ РАБОТЫ ПОРТА СО СПЕЦИАЛЬНЫМИ ТАНКЕРАМИ");
-        Run(73, true);
+        Run(80, true);
     }
 
     private static void Run(int N, bool specialTankers)
