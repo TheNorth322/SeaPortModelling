@@ -13,7 +13,8 @@ public class Port
     private int Counter { get; set; }
     public float QueueTime { get; set; }
     public int TankersArrived { get; set;  }
-    
+    private float ModellingDuration;
+
     public Port(int stationsAmount, TimeGenerator arriveTimeGenerator, TimeGenerator specialTankerCycle,
         float[] tankerFrequencies, Storm storm)
     {
@@ -37,7 +38,7 @@ public class Port
     private void InitializeSpecialTankers(float currentTime)
     {
         for (int i = 0; i < SpecialTankers.Length; i++)
-            SpecialTankers[i] = new Tanker(new TimeGenerator(21, 3), 0, currentTime + SpecialTankerCycle.Get());
+            SpecialTankers[i] = new Tanker(new TimeGenerator(5, 1), 0, currentTime + SpecialTankerCycle.Get());
     }
 
     private void InitializeStations()
@@ -55,6 +56,7 @@ public class Port
 
     public void StartModelling(float modellingDuration, bool specialTankers)
     {
+        ModellingDuration = modellingDuration;
         float currentTime = 0;
 
         if (specialTankers)
@@ -97,7 +99,7 @@ public class Port
     private void CalculateSpentTime(float modellingDuration)
     {
         foreach (FillingStation station in Stations)
-            station.SpentTime = modellingDuration - station.IdleTime;
+            station.SpentTime = station.ReleaseTime - station.IdleTime;
     }
 
     public float GetAverageSpentTime()
@@ -105,7 +107,10 @@ public class Port
         float sum = 0;
 
         foreach (FillingStation station in Stations)
-            sum += station.SpentTime;
+        {
+            sum += (station.SpentTime == ModellingDuration) ? 0 : station.SpentTime;
+        }
+            
 
         return sum / TankersArrived;
     }
@@ -158,11 +163,11 @@ public class Port
         TimeGenerator timeGenerator;
 
         if (tankerType < TankerFrequencies[0])
-            timeGenerator = new TimeGenerator(18, 2);
+            timeGenerator = new TimeGenerator(5, 1);
         else if (tankerType < TankerFrequencies[0] + TankerFrequencies[1])
-            timeGenerator = new TimeGenerator(24, 3);
+            timeGenerator = new TimeGenerator(5, 1);
         else
-            timeGenerator = new TimeGenerator(35, 4);
+            timeGenerator = new TimeGenerator(5, 1);
 
         return new Tanker(timeGenerator, 0, arriveTime);
     }
