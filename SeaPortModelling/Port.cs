@@ -38,7 +38,7 @@ public class Port
     private void InitializeSpecialTankers(float currentTime)
     {
         for (int i = 0; i < SpecialTankers.Length; i++)
-            SpecialTankers[i] = new Tanker(new TimeGenerator(5, 1), 0, currentTime + SpecialTankerCycle.Get());
+            SpecialTankers[i] = new Tanker(new TimeGenerator(21, 3), 0, currentTime + SpecialTankerCycle.Get());
     }
 
     private void InitializeStations()
@@ -163,11 +163,11 @@ public class Port
         TimeGenerator timeGenerator;
 
         if (tankerType < TankerFrequencies[0])
-            timeGenerator = new TimeGenerator(5, 1);
+            timeGenerator = new TimeGenerator(18, 2);
         else if (tankerType < TankerFrequencies[0] + TankerFrequencies[1])
-            timeGenerator = new TimeGenerator(5, 1);
+            timeGenerator = new TimeGenerator(24, 3);
         else
-            timeGenerator = new TimeGenerator(5, 1);
+            timeGenerator = new TimeGenerator(35, 4);
 
         return new Tanker(timeGenerator, 0, arriveTime);
     }
